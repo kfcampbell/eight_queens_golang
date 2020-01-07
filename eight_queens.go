@@ -12,7 +12,6 @@ type Game struct {
 func printBoard(game Game) {
 	for _, row := range game.Board {
 		for _, queenIsPlaced := range row {
-			//log.Printf("Location: [%v, %v]. Queen placement: %v", i, j, queenIsPlaced)
 			fmt.Printf(" %v ", transformBoolForPrinting(queenIsPlaced))
 		}
 		fmt.Printf("\n")
@@ -30,7 +29,7 @@ func transformBoolForPrinting(value bool) int {
 func isSafeToPlaceQueen(game Game, row, col int) bool {
 
 	// check the row, hold the column constant
-	for j := 0; j < len(game.Board); j++ {
+	for j := 0; j < col; j++ {
 		if game.Board[row][j] == true {
 			return false
 		}
@@ -60,22 +59,27 @@ func isSafeToPlaceQueen(game Game, row, col int) bool {
 	return true
 }
 
+var (
+	successfulSolutionsCount = 0
+)
+
 func solveNQueens(game Game, col int) bool {
 	// base case: if all queens are placed (we're at or greater than our total column count), return true
-	if col >= len(game.Board) {
+	if col == len(game.Board) {
+		successfulSolutionsCount++
+		log.Printf("Solution #%v found: \n", successfulSolutionsCount)
+		printBoard(game)
 		return true
 	}
 
 	// freeze the current column and try placing the queen in all rows
+	isSuccessfulResult := false
 	for i := 0; i < len(game.Board[0]); i++ {
 		if isSafeToPlaceQueen(game, i, col) {
 			// place the queen
 			game.Board[i][col] = true
 
-			// recurse to place the rest of the queens
-			if solveNQueens(game, col+1) == true {
-				return true
-			}
+			isSuccessfulResult = solveNQueens(game, col+1) || isSuccessfulResult
 
 			// otherwise remove the current queen and backtrack
 			game.Board[i][col] = false
@@ -83,7 +87,7 @@ func solveNQueens(game Game, col int) bool {
 	}
 
 	// return false if we can't place the queen anywhere
-	return false
+	return isSuccessfulResult
 }
 
 func generateBoard(sizeLength int) []([]bool) {
@@ -106,7 +110,5 @@ func main() {
 		log.Fatalf("Solution does not exist.")
 	}
 
-	printBoard(game)
-
-	log.Printf("Program done executing.")
+	log.Printf("Found %v solutions. Done executing.", successfulSolutionsCount)
 }
